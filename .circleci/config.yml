@@ -3,7 +3,10 @@ orbs:
   aws-cli: circleci/aws-cli@0.1.4
   aws-ecs: circleci/aws-ecs@0.0.10
 jobs:
-  build:  
+  build:
+    parameters:
+      node_env:
+        type: string
     docker:
       - image: cimg/base:2021.04
     steps:
@@ -12,6 +15,13 @@ jobs:
       - run:
           name: Setup common environment variables
           command: |
+            touch .env
+            export NODE_ENV=${<< parameters.node_env >>}
+            echo "NODE_ENV=${NODE_ENV}" >> .env
+            echo "PORT=${PORT}" >> .env
+            echo "HOST=${HOST}" >> .env
+            echo "CIRCLE_SHA1=${CIRCLE_SHA1}" >> .env
+            echo "CIRCLE_BUILD_NUM=${CIRCLE_BUILD_NUM}" >> .env
             echo 'export ECR_REPOSITORY_NAME="${AWS_RESOURCE_NAME_PREFIX}"' >> $BASH_ENV
             echo 'export FULL_IMAGE_NAME="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${ECR_REPOSITORY_NAME}:${CIRCLE_SHA1}"' >> $BASH_ENV
       - run:
@@ -23,7 +33,7 @@ jobs:
           command: |
             docker run -d -p 8080:8080 --name built-image $FULL_IMAGE_NAME
             sleep 10
-            docker run --network container:built-image appropriate/curl --retry 10 --retry-connrefused http://localhost:8080/check/health | grep "Hello World"
+            docker run --network container:built-image appropriate/curl --retry 10 --retry-connrefused http://localhost:8080/api/env | grep "${NODE_ENV}"
       - run:
           name: Save image to an archive
           command: |
@@ -76,16 +86,25 @@ jobs:
             TARGET_GROUP_ARN=$(aws ecs describe-services --cluster $ECS_CLUSTER_NAME --services $ECS_SERVICE_NAME | jq -r '.services[0].loadBalancers[0].targetGroupArn')
             ELB_ARN=$(aws elbv2 describe-target-groups --target-group-arns $TARGET_GROUP_ARN | jq -r '.TargetGroups[0].LoadBalancerArns[0]')
             ELB_DNS_NAME=$(aws elbv2 describe-load-balancers --load-balancer-arns $ELB_ARN | jq -r '.LoadBalancers[0].DNSName')
-            # # Test multiple times to verify that the new revision has been deployed across the entire cluster
-            # for attempt in {1..50}; do
-            #   curl -s --retry 10 http://$ELB_DNS_NAME/check/version | grep -E "Hello World!.*${CIRCLE_SHA1}_${CIRCLE_BUILD_NUM}"
-            # done
+            # Test multiple times to verify that the new revision has been deployed across the entire cluster
+            for attempt in {1..50}; do
+              curl -s --retry 10 http://$ELB_DNS_NAME/api/version | grep -E "CIRCLE_SHA1=${CIRCLE_SHA1}_CIRCLE_BUILD_NUM=${CIRCLE_BUILD_NUM}"
+            done
 workflows:
   build-deploy:
     jobs:
       - build:
           context: production
+          node_env: production
+          filters:
+            branches:
+              only:
+                - development
       - deploy:
           context: production
           requires:
             - build
+          filters:
+            branches:
+              only:
+                - development
