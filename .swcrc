@@ -1,0 +1,17 @@
+{
+  "minify": true,
+  "jsc": {
+    "minify": {
+      "compress": true,
+      "mangle": true
+    },
+    "parser": {
+      "syntax": "typescript"
+    }
+  },
+  "env": {
+    "targets": {
+      "node": 16
+    }
+  }
+}
