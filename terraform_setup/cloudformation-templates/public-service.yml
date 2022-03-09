@@ -98,8 +98,8 @@ Resources:
           !Join [':', [!Ref 'StackName', 'ClusterName']]
       LaunchType: FARGATE
       DeploymentConfiguration:
-        MaximumPercent: 100
-        MinimumHealthyPercent: 0
+        MaximumPercent: 200
+        MinimumHealthyPercent: 75
       DesiredCount: !Ref 'DesiredCount'
       NetworkConfiguration:
         AwsvpcConfiguration:
