@@ -47,8 +47,9 @@ resource "aws_cloudformation_stack" "ecs_service" {
   depends_on = [aws_cloudformation_stack.vpc, aws_ecr_repository.dg-backend-repository]
 
   parameters = {
-    ContainerMemory = 1024
     ContainerPort = 8080
+    ContainerCpu = 1024
+    ContainerMemory = 1024
     StackName = "${local.aws_vpc_stack_name}"
     ServiceName = "${local.aws_ecs_service_name}"
     # Note: Since ImageUrl parameter is not specified, the Service
