@@ -67,7 +67,10 @@ jobs:
           cluster-name: "${ECS_CLUSTER_NAME}"
           container-image-name-updates: "container=${ECS_SERVICE_NAME},image-and-tag=${FULL_IMAGE_NAME}"
           container-env-var-updates: "container=${ECS_SERVICE_NAME},name=VERSION_INFO,value=${CIRCLE_SHA1}_${CIRCLE_BUILD_NUM},container=${ECS_SERVICE_NAME},name=BUILD_DATE,value=\"$(date)\""
+          force-new-deployment: true
           verify-revision-is-deployed: true
+          max-poll-attempts: 6
+
       - run:
           name: Test deployment (Please manually tear down AWS resources after use, if desired)
           command: |
