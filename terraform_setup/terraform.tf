@@ -49,7 +49,7 @@ resource "aws_cloudformation_stack" "ecs_service" {
   parameters = {
     ContainerPort = 8080
     ContainerCpu = 1024
-    ContainerMemory = 1024
+    ContainerMemory = 2048
     StackName = "${local.aws_vpc_stack_name}"
     ServiceName = "${local.aws_ecs_service_name}"
     # Note: Since ImageUrl parameter is not specified, the Service
