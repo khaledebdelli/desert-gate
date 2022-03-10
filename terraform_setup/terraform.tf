@@ -1,10 +1,10 @@
-terraform {
-  backend "s3" {
-    bucket = "dg-backend-infra"
-    key = "key/terraform.tfstate"
-    region = "eu-west-3"
-  }
-}
+# terraform {
+#   backend "s3" {
+#     bucket = "dg-backend-infra"
+#     key = "key/terraform.tfstate"
+#     region = "eu-west-3"
+#   }
+# }
 
 provider "aws" {
   access_key = "${var.aws_access_key}"
@@ -48,11 +48,12 @@ resource "aws_cloudformation_stack" "ecs_service" {
 
   parameters = {
     ContainerPort = 8080
-    ContainerCpu = 1024
-    ContainerMemory = 2048
+    ContainerCpu = 512
+    ContainerMemory = 1024
     DesiredCount = 1
     StackName = "${local.aws_vpc_stack_name}"
     ServiceName = "${local.aws_ecs_service_name}"
+    HealthCheckPath = "/"
     # Note: Since ImageUrl parameter is not specified, the Service
     # will be deployed with the nginx image when created
   }

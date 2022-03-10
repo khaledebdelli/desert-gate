@@ -9,6 +9,11 @@ const PORT = Number(process.env.PORT) || 8080;
 const HOST = process.env.HOST || 'localhost';
 
 const app = express();
+
+app.get("/", (req, res) => {
+  res.status(200).send('🏜️');
+});
+
 app.get("/api/environment", (req, res) => {
   res.status(200).send(`environment.${process.env.NODE_ENV}`);
 });
